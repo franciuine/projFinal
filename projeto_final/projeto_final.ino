@@ -10,7 +10,7 @@ SemaphoreHandle_t xSerialSemaphore;
 
 
 //struct ler dados do sensor
-struct input{
+struct lerpino{
   int pino;
   float valor;
 }
