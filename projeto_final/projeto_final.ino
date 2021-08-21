@@ -13,26 +13,26 @@
 // Declare a mutex Semaphore Handle which we will use to manage the Serial Port.
 // It will be used to ensure only only one Task is accessing this resource at any time.
 SemaphoreHandle_t xSerialSemaphore;
-
-
 //struct ler dados do sensor
 struct lerpino{
   int pino;
   float valor;
 };
 
-float bufferTemp[10];
-const int pinLed = 11;
+// variaveis
 
+//vetor da media de temperatura
+float temp_media[10];
+//setar porta do led
+const int pinLed = 11;
 //This lines defines the hanlder for structQueue to access it for tasks reference.
 QueueHandle_t structQueue;
 
-
 //funcoes
-void thread_analogic (void *pvParameters);
-void thread_temperatura (void *pvParameters);
-void thread_temperatura_new (void *pvParameters);
-void thread_led (void *pvParameters);
+void task_inputAnalogico (void *pvParameters);
+void task_temperatura (void *pvParameters);
+void task_mediaTemperatura (void *pvParameters);
+void task_led (void *pvParameters);
 
 //liga desliga
 void setup() {
@@ -42,27 +42,32 @@ void setup() {
     ;
   }
   Serial.print("Conectando");
-
   pinMode(pinLed, OUTPUT);
-  //semaforo
+  //checa criação semaforo
   if (xSerialSemaphore == NULL){
+    //criando mutex
     xSerialSemaphore = xSemaphoreCreateMutex();
-    if ((xSerialSemaphore) != NULL){
-      xSemaphoreGive ((xSerialSemaphore));
+    if((xSerialSemaphore) != NULL){
+      //libera serial
+      xSemaphoreGive((xSerialSemaphore));
     }
   }
 
-  //criar pilha das temperaturas do sensor
+  //criar pilha das temperaturas do sensor LM35
   structQueue = xQueueCreate(10, sizeof(struct pinRead));
 
   //testa criação da pilha
   if(structQueue != NULL){
-  //cria threads com xTaskCreate
+  //cria task com xTaskCreate
   //https://www.embarcados.com.br/rtos-para-iniciantes-com-arduino-e-freertos/
-    xTaskCreate(thread_analogic, "analogic", 128, NULL, 2, NULL);
-    xTaskCreate(thread_temperatura, "temperatura", 128, NULL, 2, NULL);
-    xTaskCreate(thread_temperatura_new, "temperatura_new", 128, NULL, 2, NULL);
-    xTaskCreate(thread_led, "led", 128, NULL, 2, NULL);
+    //criar task produtora da pilha
+    xTaskCreate(task_inputAnalogico, "inputAnalogico", 128, NULL, 2, NULL);
+    //criar task consumidora da pilha
+    xTaskCreate(task_temperatura, "temperatura", 128, NULL, 2, NULL);
+    //criar task pra calcula a media da temperatura
+    xTaskCreate(task_mediaTemperatura, "mediaTemperatura", 128, NULL, 2, NULL);
+    //criar task produtora da pilha
+    xTaskCreate(task_led, "led", 128, NULL, 2, NULL);
   }
 }
 
@@ -70,41 +75,66 @@ void loop() {
   // put your main code here, to run repeatedly:
 }
 
-/*THREADSSSSSSSSSSS*/
-//definir funcao alogica
-void thread_analogic(void *pvParameters __attribute__((unused)){
+//funcao da task do input analogico, sensor LM35
+void task_inputAnalogico(void *pvParameters __attribute__((unused)){
+  while(){
+    //acessando struct
+    struct lerpino pinoatual;
+    pinoatual.pino = 0;
+    pinoatual.valor = (float(inputAnalogico(A0))*5 / (1023))/0.01;
+    //inserir na pilha
+    xQueueSend(structQueue, &pinoatual, portMAX_DELAY);
+    //delay da leitura
+    vTaskDelay(1);
+  }
 }
 
-//definir funcao temperatura
-void thread_temperatura(void *pvParameters __attribute__((unused)){
- 
+//funcao temperatura
+void task_temperatura(void *pvParameters __attribute__((unused)){
+  while(){
+    struct pino pinoatual;
+    if(xQueueReceive(structQueue, &pinoatual, portMAX_DELAY)==pdPASS){
+      temp_media[k]=pinoatual.valor;
+      //checa se encheou o vetor
+      if(k<10){
+        i = k;
+        flag = 0;
+        if(xSemaphoreTake(xSerialSemaphore, (TickType_t)5) == pdTRUE){
+          //prints da serial
+          Serial.print("Temperatura lida atual: ");
+          Serial.println(pinoatual.valor);
+          //printa posicao do buffer
+          Serial.println(k);
+          xSemaphoreGive(xSerialSemaphore);
+          k=k+1;
+        }
+      } else{
+        i = 0;
+        flag = 1;
+      }    
+    }
+  }
 }
 
+//funcao temperatura media
+void task_mediaTemperatura(void *pvParameters __attribute__((unused)){
+  while(){
+    //media da temperatura
+    float media;
+    //acumulador do buffer
+    float acumulador;
+    //se a flag é 1, calcula a media
+    if(flag==1){
+      acumulador = acumulador + temp_media[j]
+    }
+    //divide pelo tamanho do buffer
+    media = acumulador/10;
+    
+    
+  }
+}
 
-void thread_nova_temperatura(void *pvParameters __attribute__((unused)){
+//funcao led
+void task_led(void *pvParameters __attribute__((unused)){
   
 }
-
-void thread_led(void *pvParameters __attribute__((unused)){
-  
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//definir funcao nova temperatura
-
-//definir funcao led
