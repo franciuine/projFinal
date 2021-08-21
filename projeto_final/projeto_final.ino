@@ -20,6 +20,9 @@ struct lerpino{
 };
 
 // variaveis
+int flag; //mudar pra bool
+int k;
+int i;
 
 //vetor da media de temperatura
 float temp_media[10];
@@ -150,5 +153,22 @@ void task_mediaTemperatura(void *pvParameters __attribute__((unused)){
 
 //funcao led
 void task_led(void *pvParameters __attribute__((unused)){
-  
+  while(){
+    //intensidade de da luz
+    int intensidade;
+    //guarda oq foi consumido do buffer, a temperatura
+    int aux;
+    if(i>0){
+      //consome o buffer
+      aux = temp_media[i];
+      if(aux>29){
+        intensidade = map(aux, 30, 80, 0, 2500);
+        tone(pinled, intensidade);
+      }
+    }
+    else{
+      i=0;
+      noTone(pinled);
+    }
+  }
 }
