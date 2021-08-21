@@ -63,24 +63,48 @@ void setup() {
     xTaskCreate(thread_temperatura, "temperatura", 128, NULL, 2, NULL);
     xTaskCreate(thread_temperatura_new, "temperatura_new", 128, NULL, 2, NULL);
     xTaskCreate(thread_led, "led", 128, NULL, 2, NULL);
-
-    /*
-    void thread_analogic (void *pvParameters);
-    void thread_temperatura (void *pvParameters);
-    void thread_temperatura_new (void *pvParameters);
-    void thread_led (void *pvParameters);
-    */
-
-
-    
   }
-  
-  
-
-
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-
 }
+
+/*THREADSSSSSSSSSSS*/
+//definir funcao alogica
+void thread_analogic(void *pvParameters __attribute__((unused)){
+}
+
+//definir funcao temperatura
+void thread_temperatura(void *pvParameters __attribute__((unused)){
+  
+}
+
+
+void thread_nova_temperatura(void *pvParameters __attribute__((unused)){
+  
+}
+
+void thread_led(void *pvParameters __attribute__((unused)){
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//definir funcao nova temperatura
+
+//definir funcao led
