@@ -125,12 +125,26 @@ void task_mediaTemperatura(void *pvParameters __attribute__((unused)){
     float acumulador;
     //se a flag é 1, calcula a media
     if(flag==1){
-      acumulador = acumulador + temp_media[j]
+      for(int j=0; j<10; j++){
+        acumulador = acumulador + temp_media[j];
     }
-    //divide pelo tamanho do buffer
+    //divide pelo tamanho do buffer pra calcular a media
     media = acumulador/10;
-    
-    
+    //reseta a flag que indica se o buffer ta cheio ou n
+    flag=0;
+    //reseta a var de cont. do buffer
+    k=0;
+
+    if(xSemaphoreTake(xSerialSemaphore, (TickType_t)5)==pdTRUE){
+      Serial.print("Media: ");
+      Serial.println(media);
+      media=0;
+      acumulador=0;
+      xSemaphoreGive(xSerialSemaphore);
+    }
+  }
+    //caso contrario n faz leitura
+    else{flag=0; i=k}  
   }
 }
 
