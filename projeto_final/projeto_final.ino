@@ -57,7 +57,7 @@ void setup() {
   }
 
   //criar pilha das temperaturas do sensor LM35
-  structQueue = xQueueCreate(10, sizeof(struct pinRead));
+  structQueue = xQueueCreate(10, sizeof(struct lerpino));
 
   //testa criação da pilha
   if(structQueue != NULL){
@@ -79,8 +79,8 @@ void loop() {
 }
 
 //funcao da task do input analogico, sensor LM35
-void tas_analogRead(void *pvParameters __attribute__((unused)){
-  while(){
+void task_analogRead(void *pvParameters){
+  while(1){
     //acessando struct
     struct lerpino pinoatual;
     pinoatual.pino = 0;
@@ -93,9 +93,9 @@ void tas_analogRead(void *pvParameters __attribute__((unused)){
 }
 
 //funcao temperatura
-void task_temperatura(void *pvParameters __attribute__((unused)){
-  while(){
-    struct pino pinoatual;
+void task_temperatura(void *pvParameters){
+  while(1){
+    struct lerpino pinoatual;
     if(xQueueReceive(structQueue, &pinoatual, portMAX_DELAY)==pdPASS){
       temp_media[k]=pinoatual.valor;
       //checa se encheou o vetor
@@ -120,8 +120,8 @@ void task_temperatura(void *pvParameters __attribute__((unused)){
 }
 
 //funcao temperatura media
-void task_mediaTemperatura(void *pvParameters __attribute__((unused)){
-  while(){
+void task_mediaTemperatura(void *pvParameters){
+  while(1){
     //media da temperatura
     float media;
     //acumulador do buffer
@@ -147,13 +147,25 @@ void task_mediaTemperatura(void *pvParameters __attribute__((unused)){
     }
   }
     //caso contrario n faz leitura
-    else{flag=0; i=k}  
+    else{
+      flag=0;
+      i=k;
+    }  
   }
 }
 
+
+
+
+
+
+
+
+
+
 //funcao led
-void task_led(void *pvParameters __attribute__((unused)){
-  while(){
+void task_led(void *pvParameters){
+  while(1){
     //intensidade de da luz
     int intensidade;
     //guarda oq foi consumido do buffer, a temperatura
@@ -163,12 +175,12 @@ void task_led(void *pvParameters __attribute__((unused)){
       aux = temp_media[i];
       if(aux>29){
         intensidade = map(aux, 30, 80, 0, 2500);
-        tone(pinled, intensidade);
+        tone(pinLed, intensidade);
       }
     }
     else{
       i=0;
-      noTone(pinled);
+      noTone(pinLed);
     }
   }
 }
