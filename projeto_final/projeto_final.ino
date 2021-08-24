@@ -32,7 +32,7 @@ const int pinLed = 11;
 QueueHandle_t structQueue;
 
 //funcoes
-void task_inputAnalogico (void *pvParameters);
+void task_analogRead (void *pvParameters);
 void task_temperatura (void *pvParameters);
 void task_mediaTemperatura (void *pvParameters);
 void task_led (void *pvParameters);
@@ -64,7 +64,7 @@ void setup() {
   //cria task com xTaskCreate
   //https://www.embarcados.com.br/rtos-para-iniciantes-com-arduino-e-freertos/
     //criar task produtora da pilha
-    xTaskCreate(task_inputAnalogico, "inputAnalogico", 128, NULL, 2, NULL);
+    xTaskCreate(task_analogRead, "analogRead", 128, NULL, 2, NULL);
     //criar task consumidora da pilha
     xTaskCreate(task_temperatura, "temperatura", 128, NULL, 2, NULL);
     //criar task pra calcula a media da temperatura
@@ -79,12 +79,12 @@ void loop() {
 }
 
 //funcao da task do input analogico, sensor LM35
-void task_inputAnalogico(void *pvParameters __attribute__((unused)){
+void tas_analogRead(void *pvParameters __attribute__((unused)){
   while(){
     //acessando struct
     struct lerpino pinoatual;
     pinoatual.pino = 0;
-    pinoatual.valor = (float(inputAnalogico(A0))*5 / (1023))/0.01;
+    pinoatual.valor = (float(analogRead(A0))*5 / (1023))/0.01;
     //inserir na pilha
     xQueueSend(structQueue, &pinoatual, portMAX_DELAY);
     //delay da leitura
