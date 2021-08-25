@@ -199,7 +199,8 @@ void temperatura_ambiente(){
 	//LIGAR LED AMARELO
 }
 
+
+//TAREFA: LIGAR AR CONDICIONADO
 void ar_condicionado(){
 	
 }
-
