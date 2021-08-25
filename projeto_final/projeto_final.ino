@@ -36,6 +36,10 @@ void task_analogRead (void *pvParameters);
 void task_temperatura (void *pvParameters);
 void task_mediaTemperatura (void *pvParameters);
 void task_led (void *pvParameters);
+//funcoes do ar condic
+void temperatura_baixa();
+void temperatura_ambiente();
+void temperatura_baixa();
 
 //liga desliga
 void setup() {
@@ -185,21 +189,22 @@ void task_led(void *pvParameters){
 
 
 //if (Temperatura < 24.0)
-void task temperatura_baixa(){
+void temperatura_baixa(){
+
 	
 	
 	
 }
 
 //if (Temperatura > 28.0)
-void task temperatura_alta(){
+void temperatura_alta(){
 	
 	
 	
 }
 
 //if (Temperatura > 24.0 && Temperatura <= 28)
-void task temperatura_ambiente(){
+void temperatura_ambiente(){
 	
 	
 	
