@@ -151,7 +151,6 @@ void task_mediaTemperatura(void *pvParameters){
   }
 }
 
-
 //funcao led
 void task_led(void *pvParameters){
   while(1){
@@ -173,3 +172,24 @@ void task_led(void *pvParameters){
     }
   }
 }
+
+
+void task temperatura_baixa(){
+	
+	
+}
+
+
+void task temperatura_alta(){
+	
+	
+	
+}
+
+
+void task temperatura_ambiente(){
+	
+	
+	
+}
+
