@@ -204,3 +204,129 @@ void temperatura_ambiente(){
 void ar_condicionado(){
 	
 }
+
+
+
+
+
+
+
+// Biblioteca LCD
+#include <LiquidCrystal.h>
+
+//********************************************//
+//              DECLARAÇÕES                //
+// Inicializa a biblioteca LCD
+LiquidCrystal LCD(12,11,5,4,3,2);
+//Definindo pino 9 para o botão principal de liga e desliga
+int botao = 9;
+//Defindo o estado inicial do botão em Zero
+int ESTADO_B1 = 0;
+//Definindo o estado do botão após iniciar
+int MODO = 0;
+//Definindo LED VERMELHO no pino 13
+int LED_VM = 13;
+//int LED_AM = 10;
+//Definindo LED VERDE no pino 8
+int LED_VD = 8;
+//Definindo pino do sensor de temperatura no pino A0
+int pino_lm = A0;
+//Definindo o motor "ARCONDICIONADO" no pino 10
+int ar_cond = 10;
+
+//DEFININDO INPUTS
+void setup(){
+  pinMode(botao, INPUT); 
+  pinMode(pino_lm, INPUT);
+  pinMode(LED_VM, OUTPUT);
+  //pinMode(LED_AM, OUTPUT);
+  pinMode(LED_VD, OUTPUT);
+  pinMode(ar_cond, OUTPUT);
+  //Define a quantidade de colunas e linhas do LCD
+  LCD.begin(16,2);
+  //Imprime a mensagem no LCD
+  //LCD.print("Temperatura:");
+  // Muda o cursor para a primeira coluna e segunda linha do LCD
+  //LCD.setCursor(0,1); 
+  //LCD.print("            C");
+  
+ // Serial.begin(9600);
+}
+
+void loop(){
+  //leitura do botao
+  ESTADO_B1 = digitalRead(botao);
+  // Muda o cursor para a primeira coluna e segunda linha do LCD
+//  LCD.setCursor(0,1);
+ // LCD.print(ESTADO_B1);
+  //testando o estado do sistema
+  if(ESTADO_B1 == HIGH)
+  {
+    //ATUALIZA O ESTADO BOTAO APÓS SER PRESSIONADO
+    MODO = !MODO;
+  }
+  
+ // Serial.print("O MODO atual eh: ");
+ // Serial.println(MODO);
+  
+//  delay(1300);  
+  
+  //SE MODO É 1 SIGNIFICA QUE COMEÇOU!
+  //LIGAR REFRIGERAÇÃO SE TEMPERATURA ESTIVER MAIOR QUE 32
+  if(MODO == 1){	
+//    LCD.print("SISTEMA FUNCIONANDO!");
+  
+	// Faz a leitura da tensao no Sensor de Temperatura
+	int SensorTempTensao = analogRead(pino_lm);  
+  	// Converte a tensao lida
+	float Tensao = SensorTempTensao*5;
+	Tensao/=1023;
+  	// Converte a tensao lida em Graus Celsius
+	float Temperatura = (Tensao-0.5)*100;
+    //printando a temperatura no LCD
+  	LCD.setCursor(0,1);
+    LCD.print(Temperatura);
+    LCD.print(" C");
+    //condicao pra ligar ou desliga refrigeração!
+    if (Temperatura >= 32.0){
+      digitalWrite(ar_cond, HIGH);
+      LCD.setCursor(0,0);
+      LCD.print("AC Ligado");   
+    }
+    //DESLIGA ARCONDICIONADO
+    if (Temperatura < 20.0){
+      digitalWrite(ar_cond, LOW);
+      LCD.setCursor(0,0);     
+      LCD.print("AC Desligado");
+    }
+    
+    //Sinal de alerta! Ô SOR TÁ	BEM QUENTII..
+    if (Temperatura > 28.0){
+		digitalWrite(LED_VM, HIGH);
+		digitalWrite(LED_VD, LOW); 
+    }
+    
+    //Sinal de ok! Ô SOR, DÁ PÁ DESLIGA O AR?
+    if (Temperatura <= 24.0){
+		digitalWrite(LED_VM, LOW);
+		digitalWrite(LED_VD, HIGH);
+    }
+    
+    //Temperatura ideal! Vamos economizar recursos meus queridos.
+    if (Temperatura > 24.0 && Temperatura <= 28){
+	//digitalWrite(LED_VM, LOW);
+	//digitalWrite(LED_VD, LOW);
+	//digitalWrite(LED_AM, HIGH);
+    }
+	delay(1300);
+  }
+  //se o modo estiver em Zero
+  else{
+	//Serial.println("SISTEMA DESLIGADO");
+	//  digitalWrite(LED_VM, HIGH);
+   // digitalWrite(LED_VD, HIGH);
+   // digitalWrite(LED_AM, HIGH);
+    digitalWrite(ar_cond, LOW);
+  	delay(1300);
+  }
+}
