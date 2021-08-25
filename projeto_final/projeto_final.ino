@@ -40,15 +40,14 @@ void task_led (void *pvParameters);
 //liga desliga
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  while(!Serial){
-    ;
-  }
-  Serial.print("Conectando");
+  // baud rate do arduino
+  Serial.begin(9600); //taxa
+  
+  Serial.println("Conectando");
   pinMode(pinLed, OUTPUT);
   //checa criação semaforo
   if (xSerialSemaphore == NULL){
-    //criando mutex
+    //criando mutex inicializa semaforo
     xSerialSemaphore = xSemaphoreCreateMutex();
     if((xSerialSemaphore) != NULL){
       //libera serial
@@ -81,6 +80,9 @@ void loop() {
 //funcao da task do input analogico, sensor LM35
 void task_analogRead(void *pvParameters){
   while(1){
+    Serial.print("TASK ANALOGREAD ");
+    Serial.print(millis());
+    Serial.println(" ms");
     //acessando struct
     struct lerpino pinoatual;
     pinoatual.pino = 0;
@@ -95,6 +97,9 @@ void task_analogRead(void *pvParameters){
 //funcao temperatura
 void task_temperatura(void *pvParameters){
   while(1){
+    Serial.print("TASK TEMPERATURA ");
+    Serial.print(millis());
+    Serial.println(" ms");
     struct lerpino pinoatual;
     if(xQueueReceive(structQueue, &pinoatual, portMAX_DELAY)==pdPASS){
       temp_media[k]=pinoatual.valor;
@@ -114,7 +119,7 @@ void task_temperatura(void *pvParameters){
       } else{
         i = 0;
         flag = 1;
-      }    
+      }
     }
   }
 }
@@ -122,6 +127,9 @@ void task_temperatura(void *pvParameters){
 //funcao temperatura media
 void task_mediaTemperatura(void *pvParameters){
   while(1){
+    Serial.print("TASK MEDIA TEMPERATURA ");
+    Serial.print(millis());
+    Serial.println(" ms");
     //media da temperatura
     float media;
     //acumulador do buffer
@@ -166,6 +174,12 @@ void task_mediaTemperatura(void *pvParameters){
 //funcao led
 void task_led(void *pvParameters){
   while(1){
+    Serial.print("TASK LED ");
+    Serial.print(millis());
+    Serial.println(" ms");
+    
+    
+    
     //intensidade de da luz
     int intensidade;
     //guarda oq foi consumido do buffer, a temperatura
