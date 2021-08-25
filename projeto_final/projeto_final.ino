@@ -41,9 +41,6 @@ void task_led (void *pvParameters);
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  while(!Serial){
-    ;
-  }
   Serial.print("Conectando");
   pinMode(pinLed, OUTPUT);
   //checa criação semaforo
@@ -153,14 +150,6 @@ void task_mediaTemperatura(void *pvParameters){
     }  
   }
 }
-
-
-
-
-
-
-
-
 
 
 //funcao led
