@@ -40,6 +40,7 @@ void task_led (void *pvParameters);
 void temperatura_baixa();
 void temperatura_ambiente();
 void temperatura_baixa();
+void ar_condicionado();
 
 //liga desliga
 void setup() {
@@ -190,23 +191,20 @@ void task_led(void *pvParameters){
 
 //if (Temperatura < 24.0)
 void temperatura_baixa(){
-
-	
-	
-	
+	//LIGAR LED VERDE
 }
 
 //if (Temperatura > 28.0)
 void temperatura_alta(){
-	
-	
-	
+	//LIGAR LED VERMELHO
 }
 
 //if (Temperatura > 24.0 && Temperatura <= 28)
 void temperatura_ambiente(){
-	
-	
+	//LIGAR LED AMARELO
+}
+
+void ar_condicionado(){
 	
 }
 
