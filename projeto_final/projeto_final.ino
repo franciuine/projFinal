@@ -174,19 +174,31 @@ void task_led(void *pvParameters){
 }
 
 
+
+/*
+8. CONTROLE DE TEMPERATURA DE AR CONDICIONADO
+
+
+*/
+
+
+
+
+//if (Temperatura < 24.0)
 void task temperatura_baixa(){
+	
 	
 	
 }
 
-
+//if (Temperatura > 28.0)
 void task temperatura_alta(){
 	
 	
 	
 }
 
-
+//if (Temperatura > 24.0 && Temperatura <= 28)
 void task temperatura_ambiente(){
 	
 	
