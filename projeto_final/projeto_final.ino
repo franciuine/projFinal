@@ -62,6 +62,17 @@ void ar_condicionado();
 
 //liga desliga
 void setup() {
+	
+
+  pinMode(botao, INPUT); 
+  pinMode(pino_lm, INPUT);
+  pinMode(LED_VM, OUTPUT);
+  //pinMode(LED_AM, OUTPUT);
+  pinMode(LED_VD, OUTPUT);
+  pinMode(ar_cond, OUTPUT);
+  //Define a quantidade de colunas e linhas do LCD
+  LCD.begin(16,2);
+
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial.print("Conectando");
@@ -94,8 +105,82 @@ void setup() {
   }
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop(){
+  //leitura do botao
+  button_state = digitalRead(botao);
+  // Muda o cursor para a primeira coluna e segunda linha do LCD
+//  LCD.setCursor(0,1);
+ // LCD.print(button_state);
+  //testando o estado do sistema
+  if(button_state == HIGH)
+  {
+    //ATUALIZA O ESTADO BOTAO APÓS SER PRESSIONADO
+    state = !state;
+  }
+  
+ // Serial.print("O state atual eh: ");
+ // Serial.println(state);
+  
+//  delay(1300);  
+  
+  //SE state É 1 SIGNIFICA QUE COMEÇOU!
+  //LIGAR REFRIGERAÇÃO SE TEMPERATURA ESTIVER MAIOR QUE 32
+  if(state == 1){	
+//    LCD.print("SISTEMA FUNCIONANDO!");
+  
+	// Faz a leitura da tensao no Sensor de Temperatura
+	int SensorTempTensao = analogRead(pino_lm);  
+  	// Converte a tensao lida
+	float Tensao = SensorTempTensao*5;
+	Tensao/=1023;
+  	// Converte a tensao lida em Graus Celsius
+	float Temperatura = (Tensao-0.5)*100;
+    //printando a temperatura no LCD
+  	LCD.setCursor(0,1);
+    LCD.print(Temperatura);
+    LCD.print(" C");
+    //condicao pra ligar ou desliga refrigeração!
+    if (Temperatura >= 32.0){
+      digitalWrite(ar_cond, HIGH);
+      LCD.setCursor(0,0);
+      LCD.print("AC Ligado");   
+    }
+    //DESLIGA ARCONDICIONADO
+    if (Temperatura < 20.0){
+      digitalWrite(ar_cond, LOW);
+      LCD.setCursor(0,0);     
+      LCD.print("AC Desligado");
+    }
+    
+    //Sinal de alerta! Ô SOR TÁ	BEM QUENTII..
+    if (Temperatura > 28.0){
+		digitalWrite(LED_VM, HIGH);
+		digitalWrite(LED_VD, LOW); 
+    }
+    
+    //Sinal de ok! Ô SOR, DÁ PÁ DESLIGA O AR?
+    if (Temperatura <= 24.0){
+		digitalWrite(LED_VM, LOW);
+		digitalWrite(LED_VD, HIGH);
+    }
+    
+    //Temperatura ideal! Vamos economizar recursos meus queridos.
+    if (Temperatura > 24.0 && Temperatura <= 28){
+	//digitalWrite(LED_VM, LOW);
+	//digitalWrite(LED_VD, LOW);
+	//digitalWrite(LED_AM, HIGH);
+    }
+	delay(1300);
+  }
+  //se o state estiver em Zero
+  else{
+	//Serial.println("SISTEMA DESLIGADO");
+	//  digitalWrite(LED_VM, HIGH);
+   // digitalWrite(LED_VD, HIGH);
+   // digitalWrite(LED_AM, HIGH);
+    digitalWrite(ar_cond, LOW);
+  	delay(1300);
+  }
 }
 
 //funcao da task do input analogico, sensor LM35
@@ -248,99 +333,4 @@ void ar_condicionado(){
 
 
 
-//DEFININDO INPUTS
-void setup(){
-  pinMode(botao, INPUT); 
-  pinMode(pino_lm, INPUT);
-  pinMode(LED_VM, OUTPUT);
-  //pinMode(LED_AM, OUTPUT);
-  pinMode(LED_VD, OUTPUT);
-  pinMode(ar_cond, OUTPUT);
-  //Define a quantidade de colunas e linhas do LCD
-  LCD.begin(16,2);
-  //Imprime a mensagem no LCD
-  //LCD.print("Temperatura:");
-  // Muda o cursor para a primeira coluna e segunda linha do LCD
-  //LCD.setCursor(0,1); 
-  //LCD.print("            C");
-  
- // Serial.begin(9600);
-}
 
-void loop(){
-  //leitura do botao
-  button_state = digitalRead(botao);
-  // Muda o cursor para a primeira coluna e segunda linha do LCD
-//  LCD.setCursor(0,1);
- // LCD.print(button_state);
-  //testando o estado do sistema
-  if(button_state == HIGH)
-  {
-    //ATUALIZA O ESTADO BOTAO APÓS SER PRESSIONADO
-    state = !state;
-  }
-  
- // Serial.print("O state atual eh: ");
- // Serial.println(state);
-  
-//  delay(1300);  
-  
-  //SE state É 1 SIGNIFICA QUE COMEÇOU!
-  //LIGAR REFRIGERAÇÃO SE TEMPERATURA ESTIVER MAIOR QUE 32
-  if(state == 1){	
-//    LCD.print("SISTEMA FUNCIONANDO!");
-  
-	// Faz a leitura da tensao no Sensor de Temperatura
-	int SensorTempTensao = analogRead(pino_lm);  
-  	// Converte a tensao lida
-	float Tensao = SensorTempTensao*5;
-	Tensao/=1023;
-  	// Converte a tensao lida em Graus Celsius
-	float Temperatura = (Tensao-0.5)*100;
-    //printando a temperatura no LCD
-  	LCD.setCursor(0,1);
-    LCD.print(Temperatura);
-    LCD.print(" C");
-    //condicao pra ligar ou desliga refrigeração!
-    if (Temperatura >= 32.0){
-      digitalWrite(ar_cond, HIGH);
-      LCD.setCursor(0,0);
-      LCD.print("AC Ligado");   
-    }
-    //DESLIGA ARCONDICIONADO
-    if (Temperatura < 20.0){
-      digitalWrite(ar_cond, LOW);
-      LCD.setCursor(0,0);     
-      LCD.print("AC Desligado");
-    }
-    
-    //Sinal de alerta! Ô SOR TÁ	BEM QUENTII..
-    if (Temperatura > 28.0){
-		digitalWrite(LED_VM, HIGH);
-		digitalWrite(LED_VD, LOW); 
-    }
-    
-    //Sinal de ok! Ô SOR, DÁ PÁ DESLIGA O AR?
-    if (Temperatura <= 24.0){
-		digitalWrite(LED_VM, LOW);
-		digitalWrite(LED_VD, HIGH);
-    }
-    
-    //Temperatura ideal! Vamos economizar recursos meus queridos.
-    if (Temperatura > 24.0 && Temperatura <= 28){
-	//digitalWrite(LED_VM, LOW);
-	//digitalWrite(LED_VD, LOW);
-	//digitalWrite(LED_AM, HIGH);
-    }
-	delay(1300);
-  }
-  //se o state estiver em Zero
-  else{
-	//Serial.println("SISTEMA DESLIGADO");
-	//  digitalWrite(LED_VM, HIGH);
-   // digitalWrite(LED_VD, HIGH);
-   // digitalWrite(LED_AM, HIGH);
-    digitalWrite(ar_cond, LOW);
-  	delay(1300);
-  }
-}
