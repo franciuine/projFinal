@@ -3,7 +3,8 @@
 // REFERENCIAS
 // https://microcontrollerslab.com/arduino-freertos-structure-queue-receive-data-multiple-resources/
 // https://www.arduino.cc/en/Reference.AnalogRead
-
+// Biblioteca LCD
+#include <LiquidCrystal.h>
 #include <Arduino_FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
@@ -12,6 +13,7 @@
 SemaphoreHandle_t xTempSemaphore;
 
 //              DECLARAÇÕES                //
+LiquidCrystal LCD(12,11,5,4,3,2);
 float Temperatura = 0;
 //Definindo LED VERMELHO no pino 13
 int LED_VM = 13;
