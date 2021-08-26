@@ -10,6 +10,7 @@
 #include <semphr.h>
 #include <queue.h>
 
+
 // Declare a mutex Semaphore Handle which we will use to manage the Serial Port.
 // It will be used to ensure only only one Task is accessing this resource at any time.
 SemaphoreHandle_t xSerialSemaphore;
@@ -24,6 +25,23 @@ int flag; //mudar pra bool
 int k;
 int i;
 
+//********************************************//
+//              DECLARAÇÕES                //
+
+//Definindo pino 9 para o botão principal de liga e desliga
+int botao = 9; //BOTAO PRA LIGAR!!
+//Defindo o estado inicial do botão em Zero
+int button_state = 0;
+//Definindo o estado do botão após iniciar
+int state = 0;
+//Definindo LED VERMELHO no pino 13
+int LED_VM = 13;
+//Definindo LED VERDE no pino 8
+int LED_VD = 8;
+//Definindo pino do sensor de temperatura no pino A0
+int pino_lm = A0;
+//Definindo o motor "ARCONDICIONADO" no pino 10
+int ar_cond = 10;
 //vetor da media de temperatura
 float temp_media[10];
 //setar porta do led
@@ -211,28 +229,24 @@ void ar_condicionado(){
 
 
 
-// Biblioteca LCD
-#include <LiquidCrystal.h>
 
-//********************************************//
-//              DECLARAÇÕES                //
-// Inicializa a biblioteca LCD
-LiquidCrystal LCD(12,11,5,4,3,2);
-//Definindo pino 9 para o botão principal de liga e desliga
-int botao = 9;
-//Defindo o estado inicial do botão em Zero
-int ESTADO_B1 = 0;
-//Definindo o estado do botão após iniciar
-int MODO = 0;
-//Definindo LED VERMELHO no pino 13
-int LED_VM = 13;
-//int LED_AM = 10;
-//Definindo LED VERDE no pino 8
-int LED_VD = 8;
-//Definindo pino do sensor de temperatura no pino A0
-int pino_lm = A0;
-//Definindo o motor "ARCONDICIONADO" no pino 10
-int ar_cond = 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //DEFININDO INPUTS
 void setup(){
@@ -255,25 +269,25 @@ void setup(){
 
 void loop(){
   //leitura do botao
-  ESTADO_B1 = digitalRead(botao);
+  button_state = digitalRead(botao);
   // Muda o cursor para a primeira coluna e segunda linha do LCD
 //  LCD.setCursor(0,1);
- // LCD.print(ESTADO_B1);
+ // LCD.print(button_state);
   //testando o estado do sistema
-  if(ESTADO_B1 == HIGH)
+  if(button_state == HIGH)
   {
     //ATUALIZA O ESTADO BOTAO APÓS SER PRESSIONADO
-    MODO = !MODO;
+    state = !state;
   }
   
- // Serial.print("O MODO atual eh: ");
- // Serial.println(MODO);
+ // Serial.print("O state atual eh: ");
+ // Serial.println(state);
   
 //  delay(1300);  
   
-  //SE MODO É 1 SIGNIFICA QUE COMEÇOU!
+  //SE state É 1 SIGNIFICA QUE COMEÇOU!
   //LIGAR REFRIGERAÇÃO SE TEMPERATURA ESTIVER MAIOR QUE 32
-  if(MODO == 1){	
+  if(state == 1){	
 //    LCD.print("SISTEMA FUNCIONANDO!");
   
 	// Faz a leitura da tensao no Sensor de Temperatura
@@ -320,7 +334,7 @@ void loop(){
     }
 	delay(1300);
   }
-  //se o modo estiver em Zero
+  //se o state estiver em Zero
   else{
 	//Serial.println("SISTEMA DESLIGADO");
 	//  digitalWrite(LED_VM, HIGH);
