@@ -7,13 +7,10 @@
 #include <Arduino_FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
-#include <queue.h>
 
-// Declare a mutex Semaphore Handle which we will use to manage the Serial Port.
-// It will be used to ensure only only one Task is accessing this resource at any time.
+//declaração do semaforo que controla registro de temperatura
 SemaphoreHandle_t xTempSemaphore;
 
-//********************************************//
 //              DECLARAÇÕES                //
 float Temperatura = 0;
 //Definindo LED VERMELHO no pino 13
@@ -24,11 +21,11 @@ int LED_VD = 8;
 int ar_cond = 10;
 //Definindo pino do sensor de temperatura no pino A0
 int pino_lm = A0;
-
-//funcoes
+//definicao das funcoes periódicas
 void task_leituraSensor (void *pvParameters);
 void task_atuadores (void *pvParameters);
 void task_display (void *pvParameters);
+
 //liga desliga
 void setup(){
 	pinMode(pino_lm, INPUT);
@@ -40,13 +37,13 @@ void setup(){
 	LCD.begin(16,2);
 	// put your setup code here, to run once:
 	Serial.begin(9600);
-	//checa criação semaforo
+	//checa criação semaforo, se n existe cria
 	if (xTempSemaphore == NULL){
 		//criando mutex
 		xTempSemaphore = xSemaphoreCreateMutex();
     if((xTempSemaphore) != NULL){
-		//libera serial
-		xSemaphoreGive((xTempSemaphore));
+		//libera semaforo
+		xSemaphoreGive(xTempSemaphore);
 		}
 	}
 	//cria task leitura dos sensores
@@ -60,30 +57,32 @@ void setup(){
 void loop(){
 //ja era!!!! FreeRTOS N USA LOOP	
 }
-
 //funcao da task do input analogico, sensor LM35
 void task_leituraSensor(void *pvParameters){
-  while(1){
-	int SensorTempTensao = analogRead(pino_lm);  
-  	// Converte a tensao lida
-	float Tensao = SensorTempTensao*5;
-	Tensao/=1023;
-  	// Converte a tensao lida em Graus Celsius
-	float Temperatura_atual = (Tensao-0.5)*100;
-	//mutex de controle da temperatura
-	if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
-		Temperatura = Temperatura_atual;
-		xSemaphoreGive(xTempSemaphore);
+	while(1){
+		int SensorTempTensao = analogRead(pino_lm);  
+		// Converte a tensao lida
+		float Tensao = SensorTempTensao*5;
+		Tensao/=1023;
+		// Converte a tensao lida em Graus Celsius
+		float Temperatura_atual = (Tensao-0.5)*100;
+		//mutex de controle da temperatura - tentando adquirir o mutex
+		//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
+		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
+			//joga a temperatura atual pra variavel global Temperatura
+			Temperatura = Temperatura_atual;
+			//libera o samaforo
+			xSemaphoreGive(xTempSemaphore);
+		}
+		//delay da leitura - libera pras outras task
+		vTaskDelay(1);
+		}
 	}
-    //delay da leitura
-    vTaskDelay(1);
-  }
-}
 //funcao led
 void task_atuadores(void *pvParameters){
 	float temp = 0.0;
 	while(1){
-		//adquiri semaforo 
+		//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
 		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
 			temp = Temperatura; //pego a temperatura global
 			//libera semaforo
@@ -97,21 +96,19 @@ void task_atuadores(void *pvParameters){
 		if (temp < 20.0){
 			digitalWrite(ar_cond, LOW);
 		}
-    
-		//Sinal de alerta! Ô SOR TÁ	BEM QUENTII..
+		//Sinal de alerta!
 		if (temp > 28.0){
 			digitalWrite(LED_VM, HIGH);
 			digitalWrite(LED_VD, LOW); 
 		}
-    
-		//Sinal de ok! Ô SOR, DÁ PÁ DESLIGA O AR?
+		//Sinal de ok!
 		if (temp <= 24.0){
 			digitalWrite(LED_VM, LOW);
 			digitalWrite(LED_VD, HIGH);
 		}
 	}
 }
-
+//funcao display
 void task_display(void *pvParameters){
 	float temp = 0.0;
 	while(1){
@@ -127,15 +124,16 @@ void task_display(void *pvParameters){
 		LCD.print(temp);
 		LCD.print(" C");
 		
-		flag = digitalRead(ar_cond);
+		//declara a flag que indica situacao do ar cond.
+		int flag = digitalRead(ar_cond);
 		
-		if (flag == HIGH){
+		if(flag == HIGH){
 			LCD.setCursor(0,0);
-			LCD.print("Ar Condicionado LIGADO!");	
+			LCD.print("Ar Condicionado LIGADO!");
 		}
-		if (flag == LOW){
+		if(flag == LOW){
 			LCD.setCursor(0,0);
 			LCD.print("Ar Condicionado DESLIGADO!");
-		}	
+		}
 	}
 }
