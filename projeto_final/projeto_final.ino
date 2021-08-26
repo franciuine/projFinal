@@ -142,7 +142,7 @@ void task_display(void *pvParameters)
 			xSemaphoreGive(xTempSemaphore);
 		}
 		//limpadinha na tela
-		LCD.clear();
+	//	LCD.clear();
 		LCD.setCursor(0,1);
 		LCD.print(temp);
 		LCD.print(" C");
