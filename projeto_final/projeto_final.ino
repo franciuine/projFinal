@@ -43,12 +43,6 @@ void task_leituraSensor (void *pvParameters);
 void task_temperatura (void *pvParameters);
 void task_mediaTemperatura (void *pvParameters);
 void task_atuadores (void *pvParameters);
-//funcoes do ar condic
-void temperatura_baixa();
-void temperatura_ambiente();
-void temperatura_baixa();
-void ar_condicionado();
-
 //liga desliga
 void setup() {
 	
@@ -61,7 +55,6 @@ void setup() {
   LCD.begin(16,2);
   // put your setup code here, to run once:
   Serial.begin(9600);
-  Serial.print("Conectando");
   //checa criação semaforo
   if (xTempSemaphore == NULL){
     //criando mutex
@@ -170,33 +163,3 @@ void task_display(void *pvParameters){
 		}	
 	}
 }
-
-
-
-
-
-
-      LCD.setCursor(0,0);
-      LCD.print("AC Ligado");  
-
-//printando a temperatura no LCD
-LCD.setCursor(0,1);
-LCD.print(Temperatura_atual);
-LCD.print(" C");
-LCD.setCursor(0,0);     
-LCD.print("AC Desligado");
-
-	//checa criação semaforo
-	if (xTempSemaphore == NULL){
-    //criando mutex
-		xTempSemaphore = xSemaphoreCreateMutex();
-		if((xTempSemaphore) != NULL){
-      //libera serial
-			xSemaphoreGive((xTempSemaphore));
-		}
-	}
-
-
-
-
-
