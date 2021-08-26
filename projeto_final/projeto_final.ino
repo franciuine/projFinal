@@ -9,7 +9,7 @@
 #include <task.h>
 #include <semphr.h>
 
-//declaração do semaforo que controla registro de temperatura
+//declaração do semaforo
 SemaphoreHandle_t xTempSemaphore;
 
 //              DECLARAÇÕES                //
@@ -40,7 +40,7 @@ void setup()
   LCD.begin(16, 2);
   // put your setup code here, to run once:
   Serial.begin(9600);
-  //checa criação semaforo, se n existe cria
+  //checa criação semaforo
   if (xTempSemaphore == NULL)
   {
     //criando mutex
@@ -59,13 +59,13 @@ void setup()
   xTaskCreate(task_display, "display", 128, NULL, 2, NULL);
 }
 
-//n faz nada
+//Não usa loop
 void loop()
 {
-  //ja era!!!! FreeRTOS N USA LOOP
+	
 }
 
-//funcao da task do input analogico, sensor LM35
+//task para leitura do sensor
 void task_leituraSensor(void *pvParameters)
 {
   while (1)
@@ -76,16 +76,15 @@ void task_leituraSensor(void *pvParameters)
     Tensao /= 1023;
     // Converte a tensao lida em Graus Celsius
     float Temperatura_atual = (Tensao - 0.5) * 100;
-    //mutex de controle da temperatura - tentando adquirir o mute
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+	//adquiri o semaforo
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
-      //joga a temperatura atual pra variavel global Temperatura
+      //atualiza temperatura Global
       Temperatura = Temperatura_atual;
       //libera o samaforo
       xSemaphoreGive(xTempSemaphore);
     }
-    //delay da leitura - libera pras outras task
+    //delay da leitura
     vTaskDelay(1);
   }
 }
@@ -96,7 +95,7 @@ void task_atuadores(void *pvParameters)
   float temp = 0.0;
   while (1)
   {
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+    //adquiri semaforo
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
       temp = Temperatura; //pego a temperatura global
@@ -134,15 +133,14 @@ void task_display(void *pvParameters)
   float temp = 0.0;
   while (1)
   {
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+    //adquiri semaforo
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
-      temp = Temperatura; //pego a temperatura global
+      temp = Temperatura;
       //libera semaforo
       xSemaphoreGive(xTempSemaphore);
     }
-
-
+	
     LCD.setCursor(0, 1);
     LCD.print(temp);
     LCD.print(" C");
