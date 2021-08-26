@@ -54,9 +54,11 @@ void setup(){
 	xTaskCreate(task_display, "display", 128, NULL, 2, NULL);	
 }
 
+//n faz nada
 void loop(){
 //ja era!!!! FreeRTOS N USA LOOP	
 }
+
 //funcao da task do input analogico, sensor LM35
 void task_leituraSensor(void *pvParameters){
 	while(1){
@@ -78,6 +80,7 @@ void task_leituraSensor(void *pvParameters){
 		vTaskDelay(1);
 		}
 	}
+
 //funcao led
 void task_atuadores(void *pvParameters){
 	float temp = 0.0;
@@ -108,6 +111,7 @@ void task_atuadores(void *pvParameters){
 		}
 	}
 }
+
 //funcao display
 void task_display(void *pvParameters){
 	float temp = 0.0;
