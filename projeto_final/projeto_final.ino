@@ -29,7 +29,8 @@ void task_atuadores (void *pvParameters);
 void task_display (void *pvParameters);
 
 //liga desliga
-void setup(){
+void setup()
+{
 	pinMode(pino_lm, INPUT);
 	pinMode(LED_VM, OUTPUT);
 	pinMode(LED_VD, OUTPUT);
@@ -40,12 +41,14 @@ void setup(){
 	// put your setup code here, to run once:
 	Serial.begin(9600);
 	//checa criação semaforo, se n existe cria
-	if (xTempSemaphore == NULL){
+	if (xTempSemaphore == NULL)
+	{
 		//criando mutex
 		xTempSemaphore = xSemaphoreCreateMutex();
-    if((xTempSemaphore) != NULL){
-		//libera semaforo
-		xSemaphoreGive(xTempSemaphore);
+		if((xTempSemaphore) != NULL)
+		{
+			//libera semaforo
+			xSemaphoreGive(xTempSemaphore);
 		}
 	}
 	//cria task leitura dos sensores
@@ -57,57 +60,68 @@ void setup(){
 }
 
 //n faz nada
-void loop(){
+void loop()
+{
 //ja era!!!! FreeRTOS N USA LOOP	
 }
 
 //funcao da task do input analogico, sensor LM35
-void task_leituraSensor(void *pvParameters){
-	while(1){
-		int SensorTempTensao = analogRead(pino_lm);  
-		// Converte a tensao lida
-		float Tensao = SensorTempTensao*5;
-		Tensao/=1023;
-		// Converte a tensao lida em Graus Celsius
-		float Temperatura_atual = (Tensao-0.5)*100;
-		//mutex de controle da temperatura - tentando adquirir o mutex
-		//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
-		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
-			//joga a temperatura atual pra variavel global Temperatura
-			Temperatura = Temperatura_atual;
-			//libera o samaforo
-			xSemaphoreGive(xTempSemaphore);
-		}
-		//delay da leitura - libera pras outras task
-		vTaskDelay(1);
-		}
+void task_leituraSensor(void *pvParameters)
+{
+while(1)
+{
+	int SensorTempTensao = analogRead(pino_lm);  
+	// Converte a tensao lida
+	float Tensao = SensorTempTensao*5;
+	Tensao/=1023;
+	// Converte a tensao lida em Graus Celsius
+	float Temperatura_atual = (Tensao-0.5)*100;
+	//mutex de controle da temperatura - tentando adquirir o mute
+	//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
+	if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
+	{
+		//joga a temperatura atual pra variavel global Temperatura
+		Temperatura = Temperatura_atual;
+		//libera o samaforo
+		xSemaphoreGive(xTempSemaphore);
 	}
+	//delay da leitura - libera pras outras task
+	vTaskDelay(1);
+	}
+}
 
 //funcao led
-void task_atuadores(void *pvParameters){
+void task_atuadores(void *pvParameters)
+{
 	float temp = 0.0;
-	while(1){
+	while(1)
+	{
 		//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
-		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
+		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
+		{
 			temp = Temperatura; //pego a temperatura global
 			//libera semaforo
 			xSemaphoreGive(xTempSemaphore);
 		}
 		//condicao pra ligar ou desliga refrigeração!
-		if (temp >= 32.0){
+		if (temp >= 32.0)
+		{
 			digitalWrite(ar_cond, HIGH);
 		}
 		//DESLIGA ARCONDICIONADO
-		if (temp < 20.0){
+		if (temp < 20.0)
+		{
 			digitalWrite(ar_cond, LOW);
 		}
 		//Sinal de alerta!
-		if (temp > 28.0){
+		if (temp > 28.0)
+		{
 			digitalWrite(LED_VM, HIGH);
 			digitalWrite(LED_VD, LOW); 
 		}
 		//Sinal de ok!
-		if (temp <= 24.0){
+		if (temp <= 24.0)
+		{
 			digitalWrite(LED_VM, LOW);
 			digitalWrite(LED_VD, HIGH);
 		}
@@ -115,11 +129,14 @@ void task_atuadores(void *pvParameters){
 }
 
 //funcao display
-void task_display(void *pvParameters){
+void task_display(void *pvParameters)
+{
 	float temp = 0.0;
-	while(1){
+	while(1)
+	{
 		//adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick 
-		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE){
+		if(xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
+		{
 			temp = Temperatura; //pego a temperatura global
 			//libera semaforo
 			xSemaphoreGive(xTempSemaphore);
@@ -133,13 +150,15 @@ void task_display(void *pvParameters){
 		//declara a flag que indica situacao do ar cond.
 		int flag = digitalRead(ar_cond);
 		
-		if(flag == HIGH){
+		if(flag == HIGH)
+		{
 			LCD.setCursor(0,0);
-			LCD.print("Ar Condicionado LIGADO!");
+			LCD.print("AC LIGADO");
 		}
-		if(flag == LOW){
+		if(flag == LOW)
+		{
 			LCD.setCursor(0,0);
-			LCD.print("Ar Condicionado DESLIGADO!");
+			LCD.print("AC DESLIGADO");
 		}
 	}
 }
