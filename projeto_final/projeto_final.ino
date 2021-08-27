@@ -1,125 +1,167 @@
-//include das libs que vai ser usado
+/**
+//-------------------------------------------------------------------------//
+//                  Universidade Federal de Santa Maria                    //
+//                   Curso de Engenharia de Computação                     //
+//                ELC 1048 - Projeto de Sistemas Embarcados                //
+//                                                                         //
+//   Desenvolvedores:                                                      //
+//       Franciuíne Barbosa da Silva de Almeida (2019520031)               //
+//       Victor Eugenio Mainardi Fritz (201621156)                         //
+//   Professor:                                                            //
+//       Carlos Henrique Barriquello                                       //
+//   Data: 25/08/2020                                                      //
+//=========================================================================//
+//                         Descrição do Programa                           //
+//=========================================================================//
+//  Projeto desenvolvido para avaliação 2 da disciplina.                   //
+//  Controle de ar condicionado através do monitoramento e sensoriamento   //
+//  da temperatura ambiente.                                               //
+//  Utilizando a biblioteca FreeRTOS para Arduino.                         //
+//  Sensor: LM35                                                           //
+//  Saída: LED's e LCD                                                     //
+//-------------------------------------------------------------------------//
+*/
 
-// REFERENCIAS
-// https://microcontrollerslab.com/arduino-freertos-structure-queue-receive-data-multiple-resources/
-// https://www.arduino.cc/en/Reference.AnalogRead
-// Biblioteca LCD
 #include <LiquidCrystal.h>
 #include <Arduino_FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
 
-//declaração do semaforo que controla registro de temperatura
+/**
+  SEMÁFORO QUE RECEBE O REGISTRO DE TEMPERETURA ATUAL
+*/
+
 SemaphoreHandle_t xTempSemaphore;
 
-//              DECLARAÇÕES                //
+/**
+  DECLARA AS VARIÁVEIS E PINOS DE ENTRADA E SAÍDA
+*/
+
 LiquidCrystal LCD(12, 11, 5, 4, 3, 2);
+
 float Temperatura = 0;
-//Definindo LED VERMELHO no pino 13
 int LED_VM = 7;
-//Definindo LED VERDE no pino 8
 int LED_VD = 8;
-//Definindo o motor "ARCONDICIONADO" no pino 10
 int ar_cond = 10;
-//Definindo pino do sensor de temperatura no pino A0
 int pino_lm = A0;
-//definicao das funcoes periódicas
+
+/**
+  DECLARA AS TAREFAS
+*/
+
 void task_leituraSensor (void *pvParameters);
 void task_atuadores (void *pvParameters);
 void task_display (void *pvParameters);
 
-//liga desliga
 void setup()
 {
   pinMode(pino_lm, INPUT);
   pinMode(LED_VM, OUTPUT);
   pinMode(LED_VD, OUTPUT);
   pinMode(ar_cond, OUTPUT);
-
-  //Define a quantidade de colunas e linhas do LCD
+  /**
+    DEFINE A QUANTIDADE DE LINHAS E COLUNAS DO LCD
+  */
   LCD.begin(16, 2);
-  // put your setup code here, to run once:
   Serial.begin(9600);
-  //checa criação semaforo, se n existe cria
+  /**
+    VERIFICA SE O SEMÁFORO JÁ EXISTE
+  */
   if (xTempSemaphore == NULL)
   {
-    //criando mutex
+    /**
+      SE AINDA NÃO EXISTE, CRIA NOVO MUTEX
+    */
     xTempSemaphore = xSemaphoreCreateMutex();
     if ((xTempSemaphore) != NULL)
     {
-      //libera semaforo
+      o
       xSemaphoreGive(xTempSemaphore);
     }
   }
-  //cria task leitura dos sensores
+  /**
+    CRIA TAREFA PARA PER O SENSOR
+  */
   xTaskCreate(task_leituraSensor, "leituraSensor", 128, NULL, 2, NULL);
-  //cria task dos atuadores
+  /**
+    CRIA TAREFA DOS ATUADORES
+  */
   xTaskCreate(task_atuadores, "atuadores", 128, NULL, 2, NULL);
-  //cria task display
+  /**
+    CRIA TAREFA DI DISPLAY
+  */
   xTaskCreate(task_display, "display", 128, NULL, 2, NULL);
 }
 
-//n faz nada
 void loop()
 {
-  //ja era!!!! FreeRTOS N USA LOOP
+  /**
+    O CÓDIGO SERÁ EXECUTADO APENAS NAS TAREFAS
+  */
 }
 
-//funcao da task do input analogico, sensor LM35
+/**
+  LEITURA DE DADOS
+*/
 void task_leituraSensor(void *pvParameters)
 {
   while (1)
   {
     int SensorTempTensao = analogRead(pino_lm);
-    // Converte a tensao lida
     float Tensao = SensorTempTensao * 5;
     Tensao /= 1023;
-    // Converte a tensao lida em Graus Celsius
+    /**
+      CONVERTE A TEMPERATURA PARA GRAUS CELSIUS
+    */
     float Temperatura_atual = (Tensao - 0.5) * 100;
-    //mutex de controle da temperatura - tentando adquirir o mute
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+    /**
+      ADQUIRI SEMÁFORO E, SE NÃO ESTIVER LANÇADO, BLOQUEIA A THREAD POR 5 TICKS
+    */
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
-      //joga a temperatura atual pra variavel global Temperatura
       Temperatura = Temperatura_atual;
-      //libera o samaforo
       xSemaphoreGive(xTempSemaphore);
     }
-    //delay da leitura - libera pras outras task
     vTaskDelay(1);
   }
 }
 
-//funcao led
+/**
+  TAREFA PARA CONTROLE DOS LED'S
+*/
 void task_atuadores(void *pvParameters)
 {
   float temp = 0.0;
   while (1)
   {
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+    /**
+      ADQUIRI SEMÁFORO E, SE NÃO ESTIVER LANÇADO, BLOQUEIA A THREAD POR 5 TICKS
+    */
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
-      temp = Temperatura; //pego a temperatura global
-      //libera semaforo
+      temp = Temperatura;
       xSemaphoreGive(xTempSemaphore);
     }
-    //condicao pra ligar ou desliga refrigeração!
+    /**
+      CONTROLE DO AR CONDICIONADO (LIGA/DESLICA)
+    */
     if (temp >= 32.0)
     {
       digitalWrite(ar_cond, HIGH);
     }
-    //DESLIGA ARCONDICIONADO
     if (temp < 20.0)
     {
       digitalWrite(ar_cond, LOW);
     }
-    //Sinal de alerta!
+
+    /**
+      SINAIS DE ALERTA E OK
+    */
     if (temp > 28.0)
     {
       digitalWrite(LED_VM, HIGH);
       digitalWrite(LED_VD, LOW);
     }
-    //Sinal de ok!
     if (temp <= 24.0)
     {
       digitalWrite(LED_VM, LOW);
@@ -128,17 +170,20 @@ void task_atuadores(void *pvParameters)
   }
 }
 
-//funcao display
+/**
+  TAREFA QUE CONTROLA A SAÍDA DE DADOS NO DISPLAY
+*/
 void task_display(void *pvParameters)
 {
   float temp = 0.0;
   while (1)
   {
-    //adquiri semaforo / se n tiver liberado, bloqueia a treahd por 5 tick
+    /**
+      ADQUIRI SEMÁFORO E, SE NÃO ESTIVER LANÇADO, BLOQUEIA A THREAD POR 5 TICKS
+    */
     if (xSemaphoreTake(xTempSemaphore, (TickType_t)5) == pdTRUE)
     {
-      temp = Temperatura; //pego a temperatura global
-      //libera semaforo
+      temp = Temperatura;
       xSemaphoreGive(xTempSemaphore);
     }
 
@@ -147,7 +192,9 @@ void task_display(void *pvParameters)
     LCD.print(temp);
     LCD.print(" C");
 
-    //declara a flag que indica situacao do ar cond.
+    /**
+      FLAG QUE INDICA O ESTADO DO AR CONDICIONADO
+    */
     int flag = digitalRead(ar_cond);
 
     if (flag == HIGH)
