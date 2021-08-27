@@ -75,8 +75,8 @@ void loop()
 /// TASK LEITURA DO SENSOR
 void task_leituraSensor(void *pvParameters)
 {
-  while (1)
-  {
+	while (1)
+{
 /// INPUT ANALOGICO  
     int SensorTempTensao = analogRead(pino_lm);
 /// CODIFICACAO DO SINAL
@@ -96,11 +96,13 @@ void task_leituraSensor(void *pvParameters)
     }
 /// DELAY NA LEITURA
     vTaskDelay(1);
+	}
   }
 }
 /// TAREFA PARA CONTROLE DOS LED'S
 void task_atuadores(void *pvParameters)
 {
+	
   float temp = 0.0;
   while (1)
   {
@@ -135,6 +137,7 @@ void task_atuadores(void *pvParameters)
 /// TAREFA QUE CONTROLA A SAÍDA DE DADOS NO DISPLAY
 void task_display(void *pvParameters)
 {
+/// VARIAVEL LOCAL PRA TEMPERATURA
   float temp = 0.0;
   while (1)
   {
@@ -148,12 +151,8 @@ void task_display(void *pvParameters)
     LCD.setCursor(0, 1);
     LCD.print(temp);
     LCD.print(" C");
-
-    /**
-      FLAG QUE INDICA O ESTADO DO AR CONDICIONADO
-    */
+/// FLAG QUE VERIFICA SITUACAO DO AR CONDIC
     int flag = digitalRead(ar_cond);
-
     if (flag == HIGH)
     {
       LCD.setCursor(0, 0);
